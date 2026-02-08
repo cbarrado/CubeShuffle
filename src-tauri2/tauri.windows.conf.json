@@ -1,0 +1,5 @@
+{
+  "build": {
+    "beforeBuildCommand": "rmdir /s /q websrc 2>nul & mkdir websrc & cd ..\\cube_shuffle-wasm & trunk build --release --dist ..\\src-tauri2\\websrc"
+  }
+}

@@ -12,6 +12,7 @@ env:
   SOURCE_PATH: "./src"
   TRUNK_VERSION: "0.16.0"
   TAURI_CLI_VERSION: "1.1.1"
+  TAURI2_CLI_VERSION: "2"
 
 jobs:
   tauri-build:
@@ -140,6 +141,73 @@ jobs:
       - name: Format check
         run: cargo fmt --all --check
         working-directory: ${{ env.SOURCE_PATH }}
+
+  tauri2-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ ubuntu-latest, windows-2022 ]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          path: ${{ env.SOURCE_PATH }}
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          components: rustfmt, clippy
+          override: true
+      - name: Install aarch64 Darwin
+        if: runner.os == 'macOS'
+        run: rustup target add aarch64-apple-darwin
+      - uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: ${{ env.SOURCE_PATH }}
+          cache-on-failure: true
+          key: Trunk_${{ env.TRUNK_VERSION }}-Tauri2CLI_${{ env.TAURI2_CLI_VERSION }}
+      - name: Install webkit/GTK dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install libwebkit2gtk-4.0-dev \
+            build-essential \
+            curl \
+            wget \
+            libssl-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+      - name: Install Trunk
+        run: cargo install --locked trunk --version ${{ env.TRUNK_VERSION }}
+      - name: Install Tauri CLI 2
+        run: cargo install tauri-cli --version ${{ env.TAURI2_CLI_VERSION }}
+      - name: Tauri 2 Build
+        run: cargo tauri build
+        working-directory: "${{ env.SOURCE_PATH }}/src-tauri2"
+      - name: Exfiltrate MSI (Tauri 2)
+        if: runner.os == 'Windows'
+        run: |
+          mv "${{ env.SOURCE_PATH }}/target/release/bundle/msi/CubeShuffle"*".msi" "./CubeShuffle-Tauri2-GUI.msi" 2>/dev/null || true
+          mv "${{ env.SOURCE_PATH }}/target/release/bundle/msi/CubeShuffle"*".msi.zip" "./CubeShuffle-Tauri2-GUI.msi.zip" 2>/dev/null || true
+      - uses: actions/upload-artifact@v3
+        name: Tauri2-Windows-Installer
+        if: runner.os == 'Windows'
+        with:
+          if-no-files-found: ignore
+          name: CubeShuffle-Tauri2_${{ runner.os }}_${{ runner.arch }}.msi
+          path: "./CubeShuffle-Tauri2-GUI.msi*"
+      - name: Exfiltrate deb (Tauri 2)
+        if: runner.os == 'Linux'
+        run: mv "${{ env.SOURCE_PATH }}/target/release/bundle/deb/cube_shuffle-tauri2"*".deb" "./CubeShuffle-Tauri2-GUI.deb" 2>/dev/null || true
+      - uses: actions/upload-artifact@v3
+        name: Tauri2-Linux-deb
+        if: runner.os == 'Linux'
+        with:
+          if-no-files-found: ignore
+          name: CubeShuffle-Tauri2_${{ runner.os }}_${{ runner.arch }}.deb
+          path: "./CubeShuffle-Tauri2-GUI.deb"
 
   wasm-build:
     runs-on: ubuntu-latest
@@ -274,6 +342,43 @@ jobs:
           name: CubeShuffle-cli_${{ matrix.target }}
           if-no-files-found: error
           path: "cube_shuffle-cli_${{ matrix.target }}${{runner.os == 'Windows' && '.exe' || ''}}"
+
+  tauri2-android:
+    container:
+      image: cimg/android:2022.09.2-node
+      options: --user root
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          path: ${{ env.SOURCE_PATH }}
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+          echo "${HOME}/.cargo/bin" >> $GITHUB_PATH
+          echo "CARGO_HOME=${HOME}/.cargo" >> $GITHUB_ENV
+          . "${HOME}/.cargo/env"
+          rustup target add wasm32-unknown-unknown
+          rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+      - name: Install Trunk
+        run: $HOME/.cargo/bin/cargo install --locked trunk --version ${{ env.TRUNK_VERSION }}
+      - name: Install Tauri CLI 2
+        run: $HOME/.cargo/bin/cargo install tauri-cli --version ${{ env.TAURI2_CLI_VERSION }}
+      - name: Install Android build tools and NDK
+        run: |
+          sdkmanager "build-tools;34.0.0" "ndk;25.2.9519653" "platforms;android-34"
+          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/25.2.9519653" >> $GITHUB_ENV
+      - name: Tauri 2 Android init
+        run: $HOME/.cargo/bin/cargo tauri android init
+        working-directory: "${{ env.SOURCE_PATH }}/src-tauri2"
+      - name: Tauri 2 Android build
+        run: $HOME/.cargo/bin/cargo tauri android build --apk
+        working-directory: "${{ env.SOURCE_PATH }}/src-tauri2"
+      - uses: actions/upload-artifact@v3
+        name: CubeShuffle-Tauri2-Android-APK
+        if-no-files-found: ignore
+        path: "${{ env.SOURCE_PATH }}/src-tauri2/gen/android/app/build/outputs/apk/**/*.apk"
 
   cordova-build:
     container:

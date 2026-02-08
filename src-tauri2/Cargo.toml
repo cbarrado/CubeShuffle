@@ -1,0 +1,27 @@
+[package]
+name = "cube_shuffle-tauri2"
+version = "0.1.0"
+description = "Card game shuffling utility (Tauri 2)"
+authors = ["Philip Borgström"]
+license = "GNU Affero General Public License v3.0 or later"
+repository = "https://github.com/philipborg/CubeShuffle"
+edition = "2021"
+build = "build.rs"
+
+[lib]
+name = "cube_shuffle_tauri2"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "cube_shuffle-tauri2"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[features]
+default = []
+custom-protocol = ["tauri/custom-protocol"]

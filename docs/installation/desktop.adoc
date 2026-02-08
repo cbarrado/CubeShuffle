@@ -13,3 +13,17 @@
 * Windows
 ** Windows Installer (#recommended#) - Download and run `CubeShuffle-GUI.msi`.
 Follow the installation steps.
+
+== Building from source (Tauri 2)
+
+The recommended way to build the desktop GUI is using the Tauri 2 app in `src-tauri2`, which supports both Windows and Android from one codebase.
+
+* Prerequisites: Rust (with `wasm32-unknown-unknown` target), link:https://trunkrs.dev[Trunk], and the Tauri CLI v2 (`cargo install tauri-cli --version 2`).
+* From the repository root, build the frontend and package the app:
++
+----
+cd src-tauri2
+cargo tauri build
+----
++
+On Windows, the installer is produced under `target/release/bundle/msi/`. On Linux, `.deb` and AppImage are under `target/release/bundle/`. The legacy Tauri 1 app in `src-tauri` is still available but deprecated in favor of `src-tauri2`.

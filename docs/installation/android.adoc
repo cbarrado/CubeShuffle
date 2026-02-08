@@ -4,6 +4,21 @@ The distribution of the Android build is currently unfinished.
 Publishing to the Google Play Store is link:https://github.com/philipborg/CubeShuffle/issues/67[on the roadmap].
 In the meanwhile you can manually install the APK file.
 
+== Building from source (Tauri 2)
+
+The recommended way to build the Android APK is using the Tauri 2 app in `src-tauri2`, which uses the same codebase as the Windows desktop build.
+
+* Prerequisites: Rust (with `wasm32-unknown-unknown` target), link:https://trunkrs.dev[Trunk], Tauri CLI v2 (`cargo install tauri-cli --version 2`), and the Android SDK/NDK.
+* From the repository root, initialize Android support once, then build the APK:
++
+----
+cd src-tauri2
+cargo tauri android init
+cargo tauri android build --apk
+----
++
+The APK is produced under `src-tauri2/gen/android/app/build/outputs/apk/`. The legacy Cordova build in `cube_shuffle-cordova` is deprecated in favor of Tauri 2.
+
 [#_installing_apk]
 == Installing APK
 

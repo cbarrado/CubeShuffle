@@ -1,0 +1,3 @@
+# CubeShuffle – optional Python tooling (Tauri 2 builds: Windows + Android)
+# App is Rust (Cargo.toml). Build: cargo tauri build (desktop), cargo tauri android build --apk (Android).
+# Add packages below only if you add Python scripts (e.g. automation, CI helpers).
