@@ -26,4 +26,4 @@ cd src-tauri2
 cargo tauri build
 ----
 +
-On Windows, the installer is produced under `target/release/bundle/msi/`. On Linux, `.deb` and AppImage are under `target/release/bundle/`. The legacy Tauri 1 app in `src-tauri` is still available but deprecated in favor of `src-tauri2`.
+On Windows, the installer is produced under `target/release/bundle/msi/`. On Linux, `.deb` and AppImage are under `target/release/bundle/`.

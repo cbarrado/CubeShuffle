@@ -5,6 +5,5 @@ members = [
     "cube_shuffle-core",
     "cube_shuffle-cli",
     "cube_shuffle-wasm",
-    # "src-tauri",  # Deprecated (Tauri 1) — yanked deps prevent workspace resolution
     "src-tauri2",
 ]

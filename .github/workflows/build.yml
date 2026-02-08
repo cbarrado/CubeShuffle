@@ -11,137 +11,9 @@ env:
   CARGO_TERM_COLOR: always
   SOURCE_PATH: "./src"
   TRUNK_VERSION: "0.16.0"
-  TAURI_CLI_VERSION: "1.1.1"
   TAURI2_CLI_VERSION: "2"
 
 jobs:
-  tauri-build:
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [ macos-latest, ubuntu-latest, windows-2022 ]
-    runs-on: ${{ matrix.platform }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
-          path: ${{ env.SOURCE_PATH }}
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          components: rustfmt, clippy
-          override: true
-      - name: Install aarch64 Darwin
-        if: runner.os == 'macOS'
-        run: rustup target add aarch64-apple-darwin
-      - uses: Swatinem/rust-cache@v1
-        with:
-          working-directory: ${{ env.SOURCE_PATH }}
-          cache-on-failure: true
-          key: Trunk_${{ env.TRUNK_VERSION }}-TauriCLI_${{ env.TAURI_CLI_VERSION }}
-      - name: Install webkit/GTK dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get -y update
-          sudo apt-get -y install libwebkit2gtk-4.0-dev \
-            build-essential \
-            curl \
-            wget \
-            libssl-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev
-      - name: Install Trunk
-        run: cargo install --locked trunk --version ${{ env.TRUNK_VERSION }}
-      - name: Install Tauri
-        run: cargo install tauri-cli --locked --version ${{ env.TAURI_CLI_VERSION }}
-
-      - name: Windows CMD workaround
-        run: trunk build --release --dist "./../src-tauri/websrc"
-        if: runner.os == 'Windows'
-        working-directory: "${{ env.SOURCE_PATH }}/cube_shuffle-wasm"
-      - name: Tauri Build
-        run: cargo tauri build ${{ runner.os == 'macOS' && '--target universal-apple-darwin' || '' }} || true
-        working-directory: "${{ env.SOURCE_PATH }}/src-tauri"
-
-      - uses: actions/upload-artifact@v3
-        name: Tauri Linux executable
-        if: runner.os == 'Linux'
-        with:
-          if-no-files-found: error
-          name: CubeShuffle-Tauri_${{ runner.os }}_${{ runner.arch }}_EXECUTABLE
-          path: "${{ env.SOURCE_PATH }}/target/release/cube-shuffle"
-      - name: Exfiltrate deb
-        if: runner.os == 'Linux'
-        run: mv "${{ env.SOURCE_PATH }}/target/release/bundle/deb/cube-shuffle"*".deb" "CubeShuffle-GUI.deb"
-      - uses: actions/upload-artifact@v3
-        name: Tauri Linux deb
-        if: runner.os == 'Linux'
-        with:
-          if-no-files-found: error
-          name: CubeShuffle-Tauri_${{ runner.os }}_${{ runner.arch }}.deb
-          path: "CubeShuffle-GUI.deb"
-      - name: Exfiltrate AppImage
-        if: runner.os == 'Linux'
-        run: |
-          mv "${{ env.SOURCE_PATH }}/target/release/bundle/appimage/cube-shuffle"*".AppImage" "CubeShuffle-GUI.AppImage"
-          mv "${{ env.SOURCE_PATH }}/target/release/bundle/appimage/cube-shuffle"*".AppImage.tar.gz" "CubeShuffle-GUI.AppImage.tar.gz"
-      - uses: actions/upload-artifact@v3
-        name: Tauri Linux AppImage
-        if: runner.os == 'Linux'
-        with:
-          if-no-files-found: error
-          name: CubeShuffle-Tauri_${{ runner.os }}_${{ runner.arch }}.AppImage
-          path: "CubeShuffle-GUI.AppImage*"
-
-      - name: Exfiltrate MSI
-        if: runner.os == 'Windows'
-        run: |
-          mv "${{ env.SOURCE_PATH }}/target/release/bundle/msi/CubeShuffle*.msi" "./CubeShuffle-GUI.msi"
-          mv "${{ env.SOURCE_PATH }}/target/release/bundle/msi/CubeShuffle*.msi.zip" "./CubeShuffle-GUI.msi.zip"
-      - uses: actions/upload-artifact@v3
-        name: Tauri Windows Installer
-        if: runner.os == 'Windows'
-        with:
-          if-no-files-found: error
-          name: CubeShuffle-Tauri_${{ runner.os }}_${{ runner.arch }}.msi
-          path: "./CubeShuffle-GUI.msi*"
-
-      - name: Exfiltrate macOS app
-        if: runner.os == 'macOS'
-        run: mv "${{ env.SOURCE_PATH }}/target/universal-apple-darwin/release/bundle/macos/CubeShuffle.app.tar.gz" "CubeShuffle-GUI.app.tar.gz"
-      - uses: actions/upload-artifact@v3
-        name: Tauri macOS app
-        if: runner.os == 'macOS'
-        with:
-          if-no-files-found: error
-          name: CubeShuffle-Tauri_${{ runner.os }}_Universal.app
-          path: "CubeShuffle-GUI.app.tar.gz"
-      - name: Exfiltrate macOS dmg
-        if: runner.os == 'macOS'
-        run: mv "${{ env.SOURCE_PATH }}/target/universal-apple-darwin/release/bundle/dmg/CubeShuffle"*".dmg" "./CubeShuffle-GUI.dmg"
-      - uses: actions/upload-artifact@v3
-        name: Tauri macOS dmg
-        if: runner.os == 'macOS'
-        with:
-          if-no-files-found: error
-          name: CubeShuffle-Tauri_${{ runner.os }}_Universal.dmg
-          path: "./CubeShuffle-GUI.dmg"
-
-      - name: Cargo build
-        run: cargo build --verbose --locked --release
-        working-directory: ${{ env.SOURCE_PATH }}
-      - name: Clippy
-        run: cargo clippy --all-features --workspace --all-targets -- -D warnings
-        working-directory: ${{ env.SOURCE_PATH }}
-      - name: Run tests
-        run: cargo test --verbose --locked --release --no-fail-fast
-        working-directory: ${{ env.SOURCE_PATH }}
-      - name: Format check
-        run: cargo fmt --all --check
-        working-directory: ${{ env.SOURCE_PATH }}
-
   tauri2-build:
     strategy:
       fail-fast: false
@@ -460,7 +332,7 @@ jobs:
             ./CubeShuffle_Android.apk
 
   publish:
-    needs: [ cordova-build, cli-build, tauri-build, wasm-build, apk-generate ]
+    needs: [ cordova-build, cli-build, tauri2-build, wasm-build, apk-generate ]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
@@ -511,12 +383,6 @@ jobs:
           files: |
             CubeShuffle-Cordova-Android-Bundle/CubeShuffle_Android.aab
             CubeShuffle-Cordova-Android-Universal/CubeShuffle_Android.apk
-            CubeShuffle-Tauri_Linux_X64.AppImage/CubeShuffle-GUI.AppImage
-            CubeShuffle-Tauri_Linux_X64.AppImage/CubeShuffle-GUI.AppImage.tar.gz
-            CubeShuffle-Tauri_Linux_X64.deb/CubeShuffle-GUI.deb
-            CubeShuffle-Tauri_Windows_X64.msi/CubeShuffle-GUI.msi
-            CubeShuffle-Tauri_Windows_X64.msi/CubeShuffle-GUI.msi.zip
-            CubeShuffle-Tauri_macOS_Universal.dmg/CubeShuffle-GUI.dmg
-            CubeShuffle-Tauri_macOS_Universal.app/CubeShuffle-GUI.app.tar.gz
+            CubeShuffle-Tauri2_*/*
             CubeShuffle-cli_*/*
             update_info.json

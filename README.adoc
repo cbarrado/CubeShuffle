@@ -18,7 +18,7 @@ CubeShuffle improves card game cube shuffling by offering more control over dist
 It does this by combining digital and manual shuffling.
 CubeShuffle is designed to be generic for all card games with a cube format.
 
-NOTE: The desktop and Android GUI are being unified on Tauri 2 in `src-tauri2`. The legacy `src-tauri` (Tauri 1) and `cube_shuffle-cordova` (Cordova) builds remain available but are deprecated; new development should use `src-tauri2` for a single build story on Windows and Android.
+NOTE: The desktop and Android GUI use Tauri 2 in `src-tauri2`. The Cordova build in `cube_shuffle-cordova` remains available but is deprecated; use `src-tauri2` for Windows and Android.
 
 
 == Installation
