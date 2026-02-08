@@ -1,9 +1,10 @@
 [workspace]
+resolver = "2"
 
 members = [
     "cube_shuffle-core",
     "cube_shuffle-cli",
     "cube_shuffle-wasm",
-    "src-tauri",
+    # "src-tauri",  # Deprecated (Tauri 1) — yanked deps prevent workspace resolution
     "src-tauri2",
 ]

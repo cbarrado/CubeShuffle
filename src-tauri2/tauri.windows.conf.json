@@ -1,5 +1,5 @@
 {
   "build": {
-    "beforeBuildCommand": "rmdir /s /q websrc 2>nul & mkdir websrc & cd ..\\cube_shuffle-wasm & trunk build --release --dist ..\\src-tauri2\\websrc"
+    "beforeBuildCommand": "cmd /c if exist build-frontend.cmd (call build-frontend.cmd) else (call src-tauri2\\build-frontend.cmd)"
   }
 }

@@ -6,7 +6,7 @@
     "frontendDist": "websrc",
     "devUrl": "http://localhost:8080",
     "beforeDevCommand": "cd ../cube_shuffle-wasm && trunk serve",
-    "beforeBuildCommand": "rm -rf websrc && mkdir -p websrc && cd ../cube_shuffle-wasm && trunk build --release --dist ../src-tauri2/websrc"
+    "beforeBuildCommand": "sh build-frontend.sh"
   },
   "app": {
     "security": {
