@@ -95,24 +95,27 @@ impl Component for PackCard {
         };
 
         // Base card dimensions in pixels (approximate at 100% zoom)
-        let base_card_width: f64 = 200.0;
-        // Calculate base height: header (~45px) + rows (~32px each) + padding (~25px)
+        // Using generous estimates to prevent overlap at high zoom levels
+        let base_card_width: f64 = 260.0;
+        // Calculate base height: header (~60px) + rows (~45px each) + padding/margins (~40px)
         let num_rows = props.pack.card_sources.len() as f64;
-        let base_card_height: f64 = 45.0 + (num_rows * 32.0) + 25.0;
+        let base_card_height: f64 = 60.0 + (num_rows * 45.0) + 40.0;
         
         let scaled_width = base_card_width * props.zoom_scale;
         let scaled_height = base_card_height * props.zoom_scale;
         
         // Wrapper style reserves the correct layout space for the scaled card (both width and height)
+        // Add margin to account for gaps between cards
         let wrapper_style = format!(
-            "width: {:.0}px; height: {:.0}px; display: inline-block;",
+            "width: {:.0}px; height: {:.0}px; display: inline-block; margin: 4px;",
             scaled_width,
             scaled_height
         );
         
         // Apply zoom scale via CSS transform and font-size
+        // Set explicit width on the card to ensure consistent sizing before transform
         let card_style = format!(
-            "transform: scale({}); transform-origin: top left; font-size: {}rem; width: {:.0}px;",
+            "transform: scale({}); transform-origin: top left; font-size: {}rem; width: {:.0}px; box-sizing: border-box;",
             props.zoom_scale,
             scaled_font_size,
             base_card_width
