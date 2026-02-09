@@ -14,6 +14,7 @@ use crate::components::integer_input::IntegerInput;
 use crate::components::pack_list::PackList;
 use crate::components::pile_list::PileList;
 use crate::components::text_input::TextInput;
+use crate::config::Config;
 
 #[derive(Clone, PartialEq)]
 pub enum Msg {
@@ -24,6 +25,7 @@ pub enum Msg {
     Pile,
     Shuffle,
     Error(Option<String>),
+    ResetConfig,
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -39,6 +41,18 @@ pub struct App {
     seed: String,
     error_message: Option<String>,
     pack_size: usize,
+}
+
+impl App {
+    /// Save current configuration to localStorage
+    fn save_config(&self) {
+        let config = Config {
+            piles: self.piles.clone(),
+            seed: self.seed.clone(),
+            pack_size: self.pack_size,
+        };
+        config.save();
+    }
 }
 
 fn get_seed(seed: &str) -> u64 {
@@ -107,19 +121,34 @@ impl Component for App {
     type Properties = ();
 
     fn create(_: &Context<Self>) -> Self {
-        let mut rng = StdRng::from_entropy();
+        // Load saved configuration or use defaults
+        let config = Config::load();
+        
+        // Generate a random seed if none was saved
+        let seed = if config.seed.is_empty() {
+            let mut rng = StdRng::from_entropy();
+            rng.next_u64().to_string()
+        } else {
+            config.seed
+        };
+        
         Self {
-            piles: HashMap::new(),
+            piles: config.piles,
             state: State::Piling,
-            seed: rng.next_u64().to_string(),
+            seed,
             error_message: None,
-            pack_size: 15,
+            pack_size: config.pack_size,
         }
     }
 
     fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
         self.error_message = None;
-        match msg {
+        let should_save = match &msg {
+            Msg::AddPile { .. } | Msg::DelPile(_) | Msg::UpdateSeed(_) | Msg::UpdatePackSize(_) => true,
+            _ => false,
+        };
+        
+        let result = match msg {
             Msg::AddPile { name, pile } => {
                 self.piles.insert(name, pile);
                 true
@@ -153,7 +182,24 @@ impl Component for App {
                 self.piles.remove(&pile);
                 true
             }
+            Msg::ResetConfig => {
+                // Reset to defaults
+                Config::reset();
+                let mut rng = StdRng::from_entropy();
+                self.piles = HashMap::new();
+                self.seed = rng.next_u64().to_string();
+                self.pack_size = 15;
+                self.state = State::Piling;
+                true
+            }
+        };
+        
+        // Save configuration after state-changing operations
+        if should_save {
+            self.save_config();
         }
+        
+        result
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -166,6 +212,7 @@ impl Component for App {
                 let update_pack_size = link.callback(Msg::UpdatePackSize);
                 let to_shuffle = link.callback(|_| Msg::Shuffle);
                 let on_error = link.callback(|e| Msg::Error(Some(e)));
+                let reset_config = link.callback(|_| Msg::ResetConfig);
                 html! {
                     <>
                         <div class="columns is-multiline is-centered">
@@ -198,8 +245,9 @@ impl Component for App {
                                     </div>
                                 </div>
                                 <div class="field">
-                                    <div class="control">
+                                    <div class="control buttons">
                                         <button class="button is-success" onclick={ to_shuffle }>{ "Generate packs" }</button>
+                                        <button class="button is-warning" onclick={ reset_config } title="Reset all settings to defaults">{ "Reset" }</button>
                                     </div>
                                 </div>
                             </div>
