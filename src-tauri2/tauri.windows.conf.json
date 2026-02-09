@@ -1,5 +1,5 @@
 {
   "build": {
-    "beforeBuildCommand": "cmd /c if exist build-frontend.cmd (call build-frontend.cmd) else (call src-tauri2\\build-frontend.cmd)"
+    "beforeBuildCommand": "build-frontend.cmd"
   }
 }
