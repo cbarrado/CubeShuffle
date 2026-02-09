@@ -27,7 +27,7 @@ fn get_pile_colors(name: &str) -> Option<(&'static str, &'static str)> {
         "white" => Some(("#f5f5f5", "#363636")),              // Light white/off-white with dark text
         "artifact" | "artifacts" => Some(("#8b4513", "#ffffff")), // Brown (saddle brown) with white text
         "gold" => Some(("#ffd700", "#363636")),               // Gold/yellow with dark text
-        "land" | "lands" => Some(("#ff69b4", "#ffffff")),     // Pink (hot pink) with white text
+        "land" | "lands" => Some(("#ffb6c1", "#363636")),     // Light pink with dark text
         _ => None,
     }
 }
