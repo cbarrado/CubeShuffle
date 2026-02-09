@@ -32,7 +32,7 @@ impl Component for AddPile {
         Self {
             name: String::new(),
             cards: 50,
-            randomness: 10,
+            randomness: 50,
         }
     }
 
