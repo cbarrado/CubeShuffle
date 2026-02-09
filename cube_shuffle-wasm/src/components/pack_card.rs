@@ -94,27 +94,40 @@ impl Component for PackCard {
             }
         };
 
+        // Base card width in pixels (approximate card width at 100% zoom)
+        let base_card_width: f64 = 200.0;
+        let scaled_width = base_card_width * props.zoom_scale;
+        
+        // Wrapper style reserves the correct layout space for the scaled card
+        let wrapper_style = format!(
+            "width: {:.0}px; display: inline-block;",
+            scaled_width
+        );
+        
         // Apply zoom scale via CSS transform and font-size
         let card_style = format!(
-            "transform: scale({}); transform-origin: top left; font-size: {}rem;",
+            "transform: scale({}); transform-origin: top left; font-size: {}rem; width: {:.0}px;",
             props.zoom_scale,
-            scaled_font_size
+            scaled_font_size,
+            base_card_width
         );
 
         html! {
-            <div class="card" style={ card_style }>
-                <div class={ "card-header".to_owned() + checked_bg }>
-                    <label class="label card-header-title">{ props.index + 1 }</label>
-                    <span class="card-header-icon" onclick={ on_click }>
-                        { mark_button }
-                    </span>
-                </div>
-                <div class="card-content">
-                    <table class="table is-hoverable is-fullwidth is-striped">
-                        <tbody>
-                            { sources }
-                        </tbody>
-                    </table>
+            <div style={ wrapper_style }>
+                <div class="card" style={ card_style }>
+                    <div class={ "card-header".to_owned() + checked_bg }>
+                        <label class="label card-header-title">{ props.index + 1 }</label>
+                        <span class="card-header-icon" onclick={ on_click }>
+                            { mark_button }
+                        </span>
+                    </div>
+                    <div class="card-content">
+                        <table class="table is-hoverable is-fullwidth is-striped">
+                            <tbody>
+                                { sources }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         }
