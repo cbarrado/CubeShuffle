@@ -285,13 +285,6 @@ impl Component for App {
                 <section class="section has-background-black-ter">
                     <div class="container">
                         <h1 class="title has-text-light">{ "Cube Shuffle" }</h1>
-                        <p class="subtitle has-text-grey-light">
-                            <strong><a href="https://github.com/philipborg/CubeShuffle" target="_blank">{ "Code" }</a></strong>
-                            { " and "}
-                            <strong><a href="https://github.com/philipborg/CubeShuffle/blob/master/docs/distribution_shuffle.adoc" target="_blank">{ "instructions" }</a></strong>
-                            { " by " }
-                            <strong><a href="https://github.com/philipborg" target="_blank" rel="author">{ "philipborg" }</a></strong>
-                        </p>
                     </div>
                 </section>
                 { error_html }
